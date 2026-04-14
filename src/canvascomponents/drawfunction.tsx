@@ -1,5 +1,5 @@
 import './drawfunction.css'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type ControlRowProps = {
   label: string
@@ -24,128 +24,222 @@ function ControlRow({ label, value, step, onChange }: ControlRowProps) {
 }
 
 function DrawFunction() {
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const canvasSize = {
-    x: 1000,
-    y: 1000,
-  }
+  const canvasSize = { x: 1000, y: 1000 }
 
-  const [camX, setCamX] = useState(0)
-  const [camY, setCamY] = useState(0)
-  const [camZ, setCamZ] = useState(0)
-  const [camZX, setCamZX] = useState(0)
-  const [camZY, setCamZY] = useState(0)
+  // sekkei.md の camera グローバルと同じ構造を useRef で持つ。
+  // useRef にすることで FrameProcess のクロージャから常に最新値を参照できる。
+  const camera = useRef({
+    x: 0, y: 0, z: 0,
+    zx: 0, zy: 0,
+    default: { x: 0, y: 0, z: 0, zx: 0, zy: 0 },
+  })
+
+  // キーの押下状態も useRef で管理（FrameProcess から参照するため）
+  const keys = useRef({
+    W: false, S: false, D: false, A: false,
+    Space: false, Shift: false,
+  })
+  const isDragging = useRef(false)
+
+  const MoveSpeed = 10
+
+  // 描画範囲の UI 入力は state で管理する
   const [firstT, setFirstT] = useState(0)
   const [maxT, setMaxT] = useState(200)
   const [dt, setDt] = useState(0.1)
 
-  const functionNum = {
-    x: (t) => { return 10 * (Math.sin(t) - t) * Math.sin(t) },
-    y: (t) => { return 10 * (1 - Math.cos(t)) },
-    z: (t) => { return 100 * (Math.sin(t) - t) * Math.cos(t) },
-    FirstT: firstT,
-    MaxT: maxT,
-    dt: dt,
-  }
-  const camera = {
-    x: camX, y: camY, z: camZ,
-    zx: camZX, zy: camZY,
-    default: {
-      x: 0, y: 0, z: 0,
-      zx: 0, zy: 0,
-    }
-  }
+  // functionNum も useRef で持つ。
+  // state が変わったら下の useEffect で ref に同期する。
+  const functionNum = useRef({
+    x: (t: number) => 100 * Math.cos(t) * Math.sin(t),
+    y: (t: number) => 100 * (1 - Math.cos(t)) * t,
+    z: (t: number) => 100 * Math.sin(t) * Math.cos(t),
+    FirstT: 0,
+    MaxT: 200,
+    dt: 0.1,
+  })
 
-  function drawFunction2d(functionNum, ctx) {
-    ctx.beginPath();
-    if (!ctx) return;
-    for (let t = functionNum.FirstT; t <= functionNum.MaxT; t += functionNum.dt) {
-      const x = canvasSize.x / 2 + functionNum.x(t);
-      const y = canvasSize.y / 2 - functionNum.y(t);
-      if (x < canvasSize.x && y < canvasSize.y) ctx.lineTo(x, y);
-      ctx.moveTo(x, y);
-    }
-    ctx.stroke();
-  }
+  // firstT / maxT / dt の変化を functionNum.current に反映する
+  useEffect(() => {
+    functionNum.current.FirstT = firstT
+    functionNum.current.MaxT = maxT
+    functionNum.current.dt = dt
+  }, [firstT, maxT, dt])
 
-  function drawFunction3d(functionNum, camera, ctx) {
-    if (!ctx) return;
-    ctx.beginPath();
-    for (let t = functionNum.FirstT; t <= functionNum.MaxT; t += functionNum.dt) {
-      const x1 = functionNum.x(t) - camera.x;
-      const y1 = functionNum.y(t) - camera.y;
-      const z = functionNum.z(t) - camera.z;
+  useEffect(() => {
+    Setup()
+    FrameProcess()
+  }, [])
 
-      // 回転
-      const x2 = x1 * Math.cos(camera.zx) - z * Math.sin(camera.zx);
-      const z1 = x1 * Math.sin(camera.zx) + z * Math.cos(camera.zx);
-      const y2 = y1 * Math.cos(camera.zy) - z1 * Math.sin(camera.zy);
-      const z2 = y1 * Math.sin(camera.zy) + z1 * Math.cos(camera.zy);
+  // ---- イベント登録 ------------------------------------------------
 
-      // 射影
-      const X = x2 * 380 / z2;
-      const Y = y2 * 380 / z2;
-
-      // 描画
-      const x = canvasSize.x / 2 + X;
-      const y = canvasSize.y / 2 - Y;
-      if (x < canvasSize.x && y < canvasSize.y) ctx.lineTo(x, y);
-      ctx.moveTo(x, y);
-    }
-    ctx.stroke();
-  }
-
-  function handleDraw() {
+  function Setup() {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
-    ctx.clearRect(0, 0, canvasSize.x, canvasSize.y)
-    drawFunction3d(functionNum, camera, ctx)
+
+    canvas.addEventListener('mousedown', () => {
+      isDragging.current = true
+    })
+    canvas.addEventListener('mouseup', () => {
+      isDragging.current = false
+    })
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDragging.current) return
+      camera.current.zx += e.movementX / 180 * Math.PI * 0.4
+      camera.current.zy -= e.movementY / 180 * Math.PI * 0.4
+      // sekkei.md と同じ：上下を ±π/2 でクランプ（反転防止）
+      if (camera.current.zy > Math.PI / 2) camera.current.zy = Math.PI / 2
+      if (camera.current.zy < -Math.PI / 2) camera.current.zy = -Math.PI / 2
+    })
+    // 右クリックでカメラリセット（sekkei.md の mousedown e.button===2 相当）
+    canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault()
+      Object.assign(camera.current, camera.current.default)
+    })
+
+    canvas.addEventListener('keydown', (e) => {
+      let handled = true
+      switch (e.code) {
+        case 'KeyW': keys.current.W = true; break
+        case 'KeyS': keys.current.S = true; break
+        case 'KeyD': keys.current.D = true; break
+        case 'KeyA': keys.current.A = true; break
+        case 'Space': keys.current.Space = true; break
+        case 'ShiftLeft': keys.current.Shift = true; break
+        default: handled = false
+      }
+      if (handled) e.preventDefault()
+    })
+    canvas.addEventListener('keyup', (e) => {
+      switch (e.code) {
+        case 'KeyW': keys.current.W = false; break
+        case 'KeyS': keys.current.S = false; break
+        case 'KeyD': keys.current.D = false; break
+        case 'KeyA': keys.current.A = false; break
+        case 'Space': keys.current.Space = false; break
+        case 'ShiftLeft': keys.current.Shift = false; break
+      }
+    })
   }
+
+  // ---- カメラ移動 --------------------------------------------------
+
+  // camera.current を直接変更するだけでよい（useRef なので再レンダーは不要）。
+  function move() {
+    const cam = camera.current
+    const k = keys.current
+    if (k.W) {
+      cam.x += Math.sin(cam.zx) * MoveSpeed
+      cam.z += Math.cos(cam.zx) * MoveSpeed
+    }
+    if (k.S) {
+      cam.x -= Math.sin(cam.zx) * MoveSpeed
+      cam.z -= Math.cos(cam.zx) * MoveSpeed
+    }
+    if (k.D) {
+      cam.x += Math.cos(cam.zx) * MoveSpeed
+      cam.z -= Math.sin(cam.zx) * MoveSpeed
+    }
+    if (k.A) {
+      cam.x -= Math.cos(cam.zx) * MoveSpeed
+      cam.z += Math.sin(cam.zx) * MoveSpeed
+    }
+    if (k.Space) cam.y += MoveSpeed
+    if (k.Shift) cam.y -= MoveSpeed
+  }
+
+
+  // ---- 3D 描画 ----------------------------------------------------
+
+  // sekkei.md の GraphAFunction とほぼ同じアルゴリズム。
+  function drawFunction3d(fn, cam, ctx: CanvasRenderingContext2D) {
+    ctx.beginPath()
+    let beyondFlag = false   // カメラ後方(Z2<0)を通過したかどうかのフラグ
+
+    for (let t = fn.FirstT; t <= fn.MaxT; t += fn.dt) {
+      // カメラ相対座標
+      const x1 = fn.x(t) - cam.x
+      const y1 = fn.y(t) - cam.y
+      const z = fn.z(t) - cam.z
+
+      // 回転行列（sekkei.md 3.2 と同じ式）
+      const x2 = x1 * Math.cos(cam.zx) - z * Math.sin(cam.zx)
+      const Z1 = z * Math.cos(cam.zx) + x1 * Math.sin(cam.zx)
+      const y2 = y1 * Math.cos(cam.zy) - Z1 * Math.sin(cam.zy)
+      const Z2 = Z1 * Math.cos(cam.zy) + y1 * Math.sin(cam.zy)
+
+      // 透視投影
+      const X = x2 * 380 / Z2
+      const Y = y2 * 380 / Z2
+
+      if (Z2 >= 0) {
+        if (beyondFlag) {
+          // 後方から戻ってきた最初の点 → 線を引かずに移動だけ（sekkei.md の BeyondFlag 処理）
+          beyondFlag = false
+        } else {
+          ctx.lineTo(canvasSize.x / 2 + X, canvasSize.y / 2 - Y)
+        }
+        ctx.moveTo(canvasSize.x / 2 + X, canvasSize.y / 2 - Y)
+      } else {
+        beyondFlag = true   // カメラ後方 → 描画をスキップ
+      }
+    }
+    ctx.stroke()
+  }
+
+  // ---- メインループ ------------------------------------------------
+
+  // sekkei.md の FrameProcess と同じ構造。
+  // camera.current / functionNum.current は useRef なので
+  // クロージャが古くなっても常に最新値を参照できる。
+  function FrameProcess() {
+    const canvas = canvasRef.current
+    if (canvas) {
+      const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+      ctx.clearRect(0, 0, canvasSize.x, canvasSize.y)
+      ctx.fillStyle = 'green'
+      ctx.fillRect(canvasSize.x / 2 - 2, canvasSize.y / 2 - 2, 4, 4)
+      drawFunction3d(functionNum.current, camera.current, ctx)
+      move()
+    }
+    setTimeout(FrameProcess, 16)
+  }
+
+  // ---- UI ハンドラ -------------------------------------------------
 
   function handleReset() {
-    setCamX(0); setCamY(0); setCamZ(0)
-    setCamZX(0); setCamZY(0)
+    // camera.current を default 値で上書き（sekkei.md の右クリック処理と同じ）
+    Object.assign(camera.current, camera.current.default)
     setFirstT(0); setMaxT(200); setDt(0.1)
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
-    ctx.clearRect(0, 0, canvasSize.x, canvasSize.y)
-    const defaultFn = { ...functionNum, FirstT: 0, MaxT: 200, dt: 0.1 }
-    const defaultCam = { x: 0, y: 0, z: 0, zx: 0, zy: 0, default: { x: 0, y: 0, z: 0, zx: 0, zy: 0 } }
-    drawFunction3d(defaultFn, defaultCam, ctx)
   }
+
+  // ---- レンダー ----------------------------------------------------
 
   return (
     <div className="drawfunction-container">
       <aside className="controls-panel">
         <div className="controls-section">
-          <h3 className="section-title">カメラ位置</h3>
-          <ControlRow label="x"  value={camX}  step={1}    onChange={setCamX} />
-          <ControlRow label="y"  value={camY}  step={1}    onChange={setCamY} />
-          <ControlRow label="z"  value={camZ}  step={1}    onChange={setCamZ} />
-        </div>
-        <div className="controls-section">
-          <h3 className="section-title">カメラ回転 (rad)</h3>
-          <ControlRow label="zx" value={camZX} step={0.01} onChange={setCamZX} />
-          <ControlRow label="zy" value={camZY} step={0.01} onChange={setCamZY} />
-        </div>
-        <div className="controls-section">
           <h3 className="section-title">描画範囲</h3>
-          <ControlRow label="FirstT" value={firstT} step={0.1}  onChange={setFirstT} />
-          <ControlRow label="MaxT"   value={maxT}   step={1}    onChange={setMaxT} />
-          <ControlRow label="dt"     value={dt}     step={0.01} onChange={setDt} />
+          <ControlRow label="FirstT" value={firstT} step={0.1} onChange={setFirstT} />
+          <ControlRow label="MaxT" value={maxT} step={1} onChange={setMaxT} />
+          <ControlRow label="dt" value={dt} step={0.01} onChange={setDt} />
         </div>
-
         <div className="button-group">
-          <button className="draw-button" onClick={handleDraw}>描画</button>
           <button className="reset-button" onClick={handleReset}>リセット</button>
         </div>
       </aside>
 
+      {/* tabIndex={0} でキーボードイベントを受け取れるようにする */}
       <div className="canvas-wrapper">
-        <canvas ref={canvasRef} width={canvasSize.x} height={canvasSize.y} />
+        <canvas
+          ref={canvasRef}
+          width={canvasSize.x}
+          height={canvasSize.y}
+          tabIndex={0}
+        />
       </div>
     </div>
   )
