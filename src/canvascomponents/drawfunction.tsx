@@ -1,22 +1,27 @@
 import './drawfunction.css'
+import { useEffect } from 'react'
 
 function DrawFunction() {
-  window.addEventListener('load', setup);
+  useEffect(() => {
+    setup();
+  }, []);
   const canvasSize = {
     x: 1000,
     y: 1000,
   }
-  const functionNumber = {
-    MaxX: 200,
-    First: 0,
-    dx: 0.1,
+  const functionNum = {
+    x: (t) => { return Math.cos(t) - t },
+    y: (t) => { return 1 - Math.cos(t) },
+    FirstT: 0,
+    MaxT: 200,
+    dt: 0.1,
   }
 
   async function setup() {
     const canvas = document.getElementById('draw-canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   }
-  function drawDefaultLine(ctx) {
+  function drawFunction2d(functionNum, ctx) {
     ctx.beginPath();
 
   }
