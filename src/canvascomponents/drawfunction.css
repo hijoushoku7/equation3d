@@ -1,3 +1,131 @@
-#draw-canvas {
-    border: 10px solid orange;
+.drawfunction-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── コントロールパネル ── */
+.controls-panel {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--code-bg);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ff7e00;
+  margin: 0 0 0.3rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.control-name {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-h);
+  min-width: 52px;
+}
+
+.control-number {
+  width: 90px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-h);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 4px 8px;
+  text-align: right;
+  transition: border-color 0.15s;
+}
+
+.control-number:focus {
+  outline: none;
+  border-color: #ff7e00;
+  box-shadow: 0 0 0 2px rgba(255, 126, 0, 0.15);
+}
+
+/* ── ボタン ── */
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.draw-button,
+.reset-button {
+  width: 100%;
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.draw-button {
+  background: #ff7e00;
+  border: 1px solid #ff7e00;
+  color: #fff;
+  font-weight: 600;
+}
+
+.draw-button:hover {
+  background: #e86e00;
+  border-color: #e86e00;
+}
+
+.draw-button:active {
+  transform: scale(0.97);
+}
+
+.reset-button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.reset-button:hover {
+  border-color: var(--text);
+  color: var(--text-h);
+}
+
+/* ── キャンバスエリア ── */
+.canvas-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: auto;
+  padding: 1.5rem;
+}
+
+.canvas-wrapper canvas {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
 }
