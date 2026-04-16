@@ -1,27 +1,6 @@
 import './drawfunction.css'
 import { useEffect, useRef, useState } from 'react'
-
-type ControlRowProps = {
-  label: string
-  value: number
-  step: number
-  onChange: (v: number) => void
-}
-
-function ControlRow({ label, value, step, onChange }: ControlRowProps) {
-  return (
-    <div className="control-row">
-      <span className="control-name">{label}</span>
-      <input
-        className="control-number"
-        type="number"
-        value={value}
-        step={step}
-        onChange={e => onChange(parseFloat(e.target.value) || 0)}
-      />
-    </div>
-  )
-}
+import ControlRow from './ControlRow'
 
 function DrawFunction() {
 
@@ -29,8 +8,7 @@ function DrawFunction() {
 
   const canvasSize = { x: 1000, y: 1000 }
 
-  // sekkei.md の camera グローバルと同じ構造を useRef で持つ。
-  // useRef にすることで FrameProcess のクロージャから常に最新値を参照できる。
+
   const camera = useRef({
     x: 0, y: 0, z: 0,
     zx: 0, zy: 0,
@@ -54,8 +32,8 @@ function DrawFunction() {
   // functionNum も useRef で持つ。
   // state が変わったら下の useEffect で ref に同期する。
   const functionNum = useRef({
-    x: (t: number) => 100 * Math.cos(t) * Math.sin(t),
-    y: (t: number) => 100 * (1 - Math.cos(t)) * t,
+    x: (t: number) => 100 * Math.sin(t * t),
+    y: (t: number) => 100 * (1 - Math.sin(t)) * t,
     z: (t: number) => 100 * Math.sin(t) * Math.cos(t),
     FirstT: 0,
     MaxT: 200,
@@ -90,11 +68,11 @@ function DrawFunction() {
       if (!isDragging.current) return
       camera.current.zx += e.movementX / 180 * Math.PI * 0.4
       camera.current.zy -= e.movementY / 180 * Math.PI * 0.4
-      // sekkei.md と同じ：上下を ±π/2 でクランプ（反転防止）
+
       if (camera.current.zy > Math.PI / 2) camera.current.zy = Math.PI / 2
       if (camera.current.zy < -Math.PI / 2) camera.current.zy = -Math.PI / 2
     })
-    // 右クリックでカメラリセット（sekkei.md の mousedown e.button===2 相当）
+    // 右クリックでカメラリセット
     canvas.addEventListener('contextmenu', (e) => {
       e.preventDefault()
       Object.assign(camera.current, camera.current.default)
@@ -127,7 +105,6 @@ function DrawFunction() {
 
   // ---- カメラ移動 --------------------------------------------------
 
-  // camera.current を直接変更するだけでよい（useRef なので再レンダーは不要）。
   function move() {
     const cam = camera.current
     const k = keys.current
@@ -154,7 +131,6 @@ function DrawFunction() {
 
   // ---- 3D 描画 ----------------------------------------------------
 
-  // sekkei.md の GraphAFunction とほぼ同じアルゴリズム。
   function drawFunction3d(fn, cam, ctx: CanvasRenderingContext2D) {
     ctx.beginPath()
     let beyondFlag = false   // カメラ後方(Z2<0)を通過したかどうかのフラグ
@@ -165,7 +141,7 @@ function DrawFunction() {
       const y1 = fn.y(t) - cam.y
       const z = fn.z(t) - cam.z
 
-      // 回転行列（sekkei.md 3.2 と同じ式）
+      // 回転行列
       const x2 = x1 * Math.cos(cam.zx) - z * Math.sin(cam.zx)
       const Z1 = z * Math.cos(cam.zx) + x1 * Math.sin(cam.zx)
       const y2 = y1 * Math.cos(cam.zy) - Z1 * Math.sin(cam.zy)
@@ -177,7 +153,7 @@ function DrawFunction() {
 
       if (Z2 >= 0) {
         if (beyondFlag) {
-          // 後方から戻ってきた最初の点 → 線を引かずに移動だけ（sekkei.md の BeyondFlag 処理）
+
           beyondFlag = false
         } else {
           ctx.lineTo(canvasSize.x / 2 + X, canvasSize.y / 2 - Y)
@@ -192,29 +168,31 @@ function DrawFunction() {
 
   // ---- メインループ ------------------------------------------------
 
-  // sekkei.md の FrameProcess と同じ構造。
-  // camera.current / functionNum.current は useRef なので
-  // クロージャが古くなっても常に最新値を参照できる。
+
   function FrameProcess() {
     const canvas = canvasRef.current
+    // canvasクリア
     if (canvas) {
       const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
       ctx.clearRect(0, 0, canvasSize.x, canvasSize.y)
       ctx.fillStyle = 'green'
       ctx.fillRect(canvasSize.x / 2 - 2, canvasSize.y / 2 - 2, 4, 4)
       drawFunction3d(functionNum.current, camera.current, ctx)
-      move()
+      move() // キー操作
     }
     setTimeout(FrameProcess, 16)
   }
 
-  // ---- UI ハンドラ -------------------------------------------------
-
   function handleReset() {
-    // camera.current を default 値で上書き（sekkei.md の右クリック処理と同じ）
+
     Object.assign(camera.current, camera.current.default)
     setFirstT(0); setMaxT(200); setDt(0.1)
   }
+
+  /*function StringToFunction(str: string) {
+    if(str.)
+  }
+    */
 
   // ---- レンダー ----------------------------------------------------
 
@@ -232,7 +210,6 @@ function DrawFunction() {
         </div>
       </aside>
 
-      {/* tabIndex={0} でキーボードイベントを受け取れるようにする */}
       <div className="canvas-wrapper">
         <canvas
           ref={canvasRef}
