@@ -43,13 +43,6 @@ function DrawFunction() {
     MaxT: 200,
     dt: 0.1,
   })
-
-  const currentCoordinate = useRef({
-    x: "100*cos(t)*sin(t/200*PI)",
-    y: "100*cos(t/200*PI)",
-    z: "100*sin(t)*sin(t/200*PI)+250",
-  })
-
   // firstT / maxT / dt の変化を functionNum.current に反映する
   useEffect(() => {
     functionNum.current.FirstT = firstT
@@ -205,11 +198,10 @@ function DrawFunction() {
     //　トークン分割、不正チェック
     const Strings = str.split(/\(|\)|\*|\/|\-|\+|\^|abs|acos|acosh|asin|asinh|atanh|cbrt|ceil|cos|cosh|exp|expm1|floor|log|log1p|log10|log2|random|round|sign|sin|sinh|sqrt|tan|tanh|trunc|PI|E/)
     parent: for (let i = 0; i < Strings.length; i++) {
-      if (isNumber(Strings[i]) || Strings[i] === "t") continue;
+      if (isNumber(Strings[i]) || Strings[i] === "t" || Strings[i] === "") continue;
       if (String[i] >= 2) return false;
-
+      return false;
     }
-    return false;
     let MathMethodArray = ["abs", "acos", "acosh", "asin", "asinh", "atanh", "cbrt", "ceil", "cos", "cosh", "exp", "expm1", "floor", "log", "log1p", "log10", "log2", "random", "round", "sign", "sin", "sinh", "sqrt", "tan", "tanh", "trunc", "PI", "E"];
     str = str.replaceAll("^", "**");
     for (let i = 0; i < MathMethodArray.length; i++) {
@@ -217,6 +209,9 @@ function DrawFunction() {
     }
     return eval(`(t) => ${str}`);
   }
+
+  console.log(StringToFunction("100*sin(t)*sin(t/200*PI)+250"));
+  console.log("hello");
 
   // str1 の中に含まれるstr2の数を数える
   function CountStringNum(str1: string, str2: string) {
@@ -231,10 +226,15 @@ function DrawFunction() {
     return !isNaN(char) && char.trim() !== "";
   }
 
-  function setAllcoordinate() {
-    currentCoordinate.current.x = x;
-    currentCoordinate.current.y = y;
-    currentCoordinate.current.z = z;
+  function setAllFunction() {
+    const fx = StringToFunction(x)
+    const fy = StringToFunction(y)
+    const fz = StringToFunction(z)
+    if (fx && fy && fz) {
+      functionNum.current.x = fx
+      functionNum.current.y = fy
+      functionNum.current.z = fz
+    }
   }
 
   // ---- レンダー ----------------------------------------------------
@@ -253,6 +253,7 @@ function DrawFunction() {
           <ControlRowString label="z(t)" value={z} onChange={setZ} />
         </div>
         <div className="button-group">
+          <button className="reset-button" onClick={setAllFunction}>関数セット</button>
           <button className="reset-button" onClick={handleReset}>リセット</button>
         </div>
       </aside>
