@@ -1,6 +1,7 @@
 import './drawfunction.css'
 import { useEffect, useRef, useState } from 'react'
 import ControlRow from './ControlRow'
+import ControlRowString from './ControlRowString'
 
 function DrawFunction() {
 
@@ -28,6 +29,9 @@ function DrawFunction() {
   const [firstT, setFirstT] = useState(0)
   const [maxT, setMaxT] = useState(200)
   const [dt, setDt] = useState(0.1)
+  const [x, setX] = useState("100*cos(t)*sin(t/200*PI)")
+  const [y, setY] = useState("100*cos(t/200*PI)")
+  const [z, setZ] = useState("100*sin(t)*sin(t/200*PI)+250")
 
   // functionNum も useRef で持つ。
   // state が変わったら下の useEffect で ref に同期する。
@@ -38,6 +42,12 @@ function DrawFunction() {
     FirstT: 0,
     MaxT: 200,
     dt: 0.1,
+  })
+
+  const currentCoordinate = useRef({
+    x: "100*cos(t)*sin(t/200*PI)",
+    y: "100*cos(t/200*PI)",
+    z: "100*sin(t)*sin(t/200*PI)+250",
   })
 
   // firstT / maxT / dt の変化を functionNum.current に反映する
@@ -189,10 +199,43 @@ function DrawFunction() {
     setFirstT(0); setMaxT(200); setDt(0.1)
   }
 
-  /*function StringToFunction(str: string) {
-    if(str.)
+  function StringToFunction(str: string) {
+    if (CountStringNum(str, '(') !== CountStringNum(str, ')')) return false
+    str = str.replaceAll(/\s/g, "")
+    //　トークン分割、不正チェック
+    const Strings = str.split(/\(|\)|\*|\/|\-|\+|\^|abs|acos|acosh|asin|asinh|atanh|cbrt|ceil|cos|cosh|exp|expm1|floor|log|log1p|log10|log2|random|round|sign|sin|sinh|sqrt|tan|tanh|trunc|PI|E/)
+    parent: for (let i = 0; i < Strings.length; i++) {
+      if (isNumber(Strings[i]) || Strings[i] === "t") continue;
+      if (String[i] >= 2) return false;
+
+    }
+    return false;
+    let MathMethodArray = ["abs", "acos", "acosh", "asin", "asinh", "atanh", "cbrt", "ceil", "cos", "cosh", "exp", "expm1", "floor", "log", "log1p", "log10", "log2", "random", "round", "sign", "sin", "sinh", "sqrt", "tan", "tanh", "trunc", "PI", "E"];
+    str = str.replaceAll("^", "**");
+    for (let i = 0; i < MathMethodArray.length; i++) {
+      str = str.replaceAll(MathMethodArray[i], `Math.${MathMethodArray[i]}`);
+    }
+    return eval(`(t) => ${str}`);
   }
-    */
+
+  // str1 の中に含まれるstr2の数を数える
+  function CountStringNum(str1: string, str2: string) {
+    let count = 0
+    for (let i = 0; i < str1.length; i++) {
+      if (str1[i] === str2) count++
+    }
+    return count
+  }
+
+  function isNumber(char) {
+    return !isNaN(char) && char.trim() !== "";
+  }
+
+  function setAllcoordinate() {
+    currentCoordinate.current.x = x;
+    currentCoordinate.current.y = y;
+    currentCoordinate.current.z = z;
+  }
 
   // ---- レンダー ----------------------------------------------------
 
@@ -204,6 +247,10 @@ function DrawFunction() {
           <ControlRow label="FirstT" value={firstT} step={0.1} onChange={setFirstT} />
           <ControlRow label="MaxT" value={maxT} step={1} onChange={setMaxT} />
           <ControlRow label="dt" value={dt} step={0.01} onChange={setDt} />
+          <br />
+          <ControlRowString label="x(t)" value={x} onChange={setX} />
+          <ControlRowString label="y(t)" value={y} onChange={setY} />
+          <ControlRowString label="z(t)" value={z} onChange={setZ} />
         </div>
         <div className="button-group">
           <button className="reset-button" onClick={handleReset}>リセット</button>

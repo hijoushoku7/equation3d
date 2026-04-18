@@ -5,6 +5,7 @@ type ControlRowProps = {
   onChange: (v: number) => void
 }
 
+
 function ControlRow({ label, value, step, onChange }: ControlRowProps) {
   return (
     <div className="control-row">
