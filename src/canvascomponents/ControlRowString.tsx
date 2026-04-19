@@ -7,10 +7,10 @@ type ControlRowStringProps = {
 
 function ControlRowString({ label, value, onChange }: ControlRowStringProps) {
     return (
-        <div className="control-row">
+        <div className="control-row-string">
             <span className="control-name">{label}</span>
             <input
-                className="control-number"
+                className="control-string"
                 type="text"
                 value={value}
                 onChange={e => onChange(e.target.value)}
