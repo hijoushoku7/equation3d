@@ -217,13 +217,13 @@ function DrawFunction() {
     if (CountStringNum(str, '(') !== CountStringNum(str, ')')) return false
     str = str.replaceAll(/\s/g, "")
     const Strings = str.split(/\(|\)|\*|\/|\-|\+|\^|abs|acos|acosh|asin|asinh|atanh|cbrt|ceil|cos|cosh|exp|expm1|floor|log|log1p|log10|log2|random|round|sign|sin|sinh|sqrt|tan|tanh|trunc|PI|E/)
-    parent: for (let i = 0; i < Strings.length; i++) {
+    for (let i = 0; i < Strings.length; i++) {
       if (isNumber(Strings[i]) || Strings[i] === "t" || Strings[i] === "" || Strings[i] === "J") continue;
       if (Strings[i].length >= 2) return false;
       return false;
     }
     str = str.replaceAll("J", "functionNum.current.J");
-    let MathMethodArray = ["abs", "acos", "acosh", "asin", "asinh", "atanh", "cbrt", "ceil", "cos", "cosh", "exp", "expm1", "floor", "log", "log1p", "log10", "log2", "random", "round", "sign", "sin", "sinh", "sqrt", "tan", "tanh", "trunc", "PI", "E"];
+    const MathMethodArray = ["abs", "acos", "acosh", "asin", "asinh", "atanh", "cbrt", "ceil", "cos", "cosh", "exp", "expm1", "floor", "log", "log1p", "log10", "log2", "random", "round", "sign", "sin", "sinh", "sqrt", "tan", "tanh", "trunc", "PI", "E"];
     str = str.replaceAll("^", "**");
     for (let i = 0; i < MathMethodArray.length; i++) {
       str = str.replaceAll(MathMethodArray[i], `Math.${MathMethodArray[i]}`);
