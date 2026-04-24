@@ -156,15 +156,18 @@ function DrawFunction() {
     let beyondFlag = false
 
     for (let t = fn.FirstT; t <= fn.MaxT; t += fn.dt) {
+      //カメラ位置による移動
       const x1 = fn.x(t) - cam.x
       const y1 = fn.y(t) - cam.y
       const z = fn.z(t) - cam.z
 
+      //行列計算による回転
       const x2 = x1 * Math.cos(cam.zx) - z * Math.sin(cam.zx)
       const Z1 = z * Math.cos(cam.zx) + x1 * Math.sin(cam.zx)
       const y2 = y1 * Math.cos(cam.zy) - Z1 * Math.sin(cam.zy)
       const Z2 = Z1 * Math.cos(cam.zy) + y1 * Math.sin(cam.zy)
 
+      //正射影
       const X = x2 * 380 / Z2
       const Y = y2 * 380 / Z2
 
