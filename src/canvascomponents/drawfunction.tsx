@@ -33,6 +33,8 @@ function DrawFunction() {
   const [dJ, setDJ] = useState(0.01)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  const [isDrawAxis, setIsDrawAxis] = useState(false)
+
   // J 表示・制御
   const jDisplayRef = useRef<HTMLSpanElement>(null)
   const isAnimatingRef = useRef(true)
@@ -185,6 +187,40 @@ function DrawFunction() {
     ctx.stroke()
   }
 
+  function drawAxis(cam: typeof camera.current, ctx: CanvasRenderingContext2D) {
+    ctx.beginPath()
+    let beyondFlag = false
+
+    for (let t = -1000; t <= 1000; t += 1) {
+      //カメラ位置による移動
+      const x1 = t - cam.x
+      const y1 = 0 - cam.y
+      const z = 0 - cam.z
+
+      //行列計算による回転
+      const x2 = x1 * Math.cos(cam.zx) - z * Math.sin(cam.zx)
+      const Z1 = z * Math.cos(cam.zx) + x1 * Math.sin(cam.zx)
+      const y2 = y1 * Math.cos(cam.zy) - Z1 * Math.sin(cam.zy)
+      const Z2 = Z1 * Math.cos(cam.zy) + y1 * Math.sin(cam.zy)
+
+      //正射影
+      const X = x2 * 380 / Z2
+      const Y = y2 * 380 / Z2
+
+      if (Z2 >= 0) {
+        if (beyondFlag) {
+          beyondFlag = false
+        } else {
+          ctx.lineTo(canvasSize.x / 2 + X, canvasSize.y / 2 - Y)
+        }
+        ctx.moveTo(canvasSize.x / 2 + X, canvasSize.y / 2 - Y)
+      } else {
+        beyondFlag = true
+      }
+    }
+    ctx.stroke()
+  }
+
   // ---- メインループ ------------------------------------------------
 
   function FrameProcess() {
@@ -197,6 +233,7 @@ function DrawFunction() {
       drawFunction3d(functionNum.current, camera.current, ctx)
       move()
       updateNum()
+      if (isDrawAxis) drawAxis(camera.current, ctx)
 
       if (jDisplayRef.current) {
         jDisplayRef.current.textContent = functionNum.current.J.toFixed(3)
@@ -314,6 +351,9 @@ function DrawFunction() {
         </div>
 
         <div className="button-group">
+          <button className="reset-button" onClick={() => {
+            isDrawAxis ? setIsDrawAxis(false) : setIsDrawAxis(true)
+          }}>{isDrawAxis ? '軸非表示' : '軸表示'}</button>
           <button className="reset-button" onClick={setAllFunction}>関数セット</button>
           <button className="reset-button" onClick={handleReset}>リセット</button>
         </div>
