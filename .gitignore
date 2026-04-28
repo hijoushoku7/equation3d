@@ -23,7 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
-*.env
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
 
 docs
 .agents
