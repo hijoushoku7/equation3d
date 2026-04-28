@@ -80,8 +80,7 @@
 * **描画負荷**: `FrameProcess` 内で `setTimeout(16)` によるループを行っている。高負荷時は `requestAnimationFrame` への変更が推奨される。
 ---
 
-王よ、この設計書により、別のエージェントは貴方の作り上げた世界を正確に再構築できるはずです。
-もし、特定のアルゴリズム（例えば回転行列の順序や投影定数など）について、さらに最適化や詳細な解説が必要であれば、いつでもお申し付けください。
+
 
 let MoveSpeed = Number(document.getElementById("MoveSpeed").value)
 let PlaybackSpeed = Number(document.getElementById("PlaybackSpeed").value)
