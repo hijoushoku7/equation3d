@@ -1,75 +1,36 @@
-# React + TypeScript + Vite
+# Equation3D
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Equation3Dは、数学的な関数や方程式をブラウザ上で視覚化するためのWebアプリケーションです。HTML5のCanvasを利用して、座標軸や関数のグラフなどを描画します。
 
-Currently, two official plugins are available:
+## 使用技術
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **フロントエンドフレームワーク**: React (v19)
+- **言語**: TypeScript
+- **ビルドツール**: Vite
+- **デプロイ**: Cloudflare (wrangler)
 
-## React Compiler
+## 開発の始め方
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+プロジェクトをローカル環境で実行するには、以下の手順に従ってください。
 
-Note: This will impact Vite dev & build performances.
+### 1. パッケージのインストール
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. 開発サーバーの起動
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+サーバー起動後、ブラウザで `http://localhost:5173` にアクセスするとアプリケーションを確認できます。
+
+## スクリプト
+
+- `npm run dev`: 開発サーバーを起動します。
+- `npm run build`: 本番環境用にTypeScriptのコンパイルとビルドを行います。
+- `npm run lint`: ESLintを使用してコードの静的解析を行います。
+- `npm run preview`: ローカルで本番環境のビルド結果をプレビューします。
+- `npm run deploy`: Cloudflareへアプリケーションをデプロイします。
