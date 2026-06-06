@@ -299,8 +299,7 @@ function DrawFunction() {
   }
 
   // ---- レンダー ----------------------------------------------------
- //軸表示は未実装
- //a 
+
   return (
     <div className="drawfunction-container">
       <aside className="controls-panel">
@@ -357,6 +356,7 @@ function DrawFunction() {
           }}>{isDrawAxis ? '軸非表示' : '軸表示'}</button>
           <button className="reset-button" onClick={setAllFunction}>関数セット</button>
           <button className="reset-button" onClick={handleReset}>リセット</button>
+          <button>リセットするよ</button>
         </div>
           
       </aside>
