@@ -300,6 +300,7 @@ function DrawFunction() {
 
   // ---- レンダー ----------------------------------------------------
  //軸表示は未実装
+ //a 
   return (
     <div className="drawfunction-container">
       <aside className="controls-panel">
