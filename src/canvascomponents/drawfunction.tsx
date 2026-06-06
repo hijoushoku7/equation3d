@@ -299,7 +299,7 @@ function DrawFunction() {
   }
 
   // ---- レンダー ----------------------------------------------------
-
+ //軸表示は未実装
   return (
     <div className="drawfunction-container">
       <aside className="controls-panel">
@@ -357,7 +357,7 @@ function DrawFunction() {
           <button className="reset-button" onClick={setAllFunction}>関数セット</button>
           <button className="reset-button" onClick={handleReset}>リセット</button>
         </div>
-
+          
       </aside>
 
       <div className="canvas-wrapper">
