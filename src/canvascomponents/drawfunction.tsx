@@ -350,14 +350,6 @@ function DrawFunction() {
           <ControlRowString label="z(t)" value={z} onChange={setZ} />
         </div>
 
-        <div className="button-group">
-          <button className="reset-button" onClick={() => {
-            isDrawAxis ? setIsDrawAxis(false) : setIsDrawAxis(true)
-          }}>{isDrawAxis ? '軸非表示' : '軸表示'}</button>
-          <button className="reset-button" onClick={setAllFunction}>関数セット</button>
-          <button className="reset-button" onClick={handleReset}>リセット</button>
-        </div>
-
       </aside>
 
       <div className="canvas-wrapper">
