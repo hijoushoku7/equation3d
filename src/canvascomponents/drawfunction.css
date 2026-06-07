@@ -96,6 +96,27 @@
   box-shadow: 0 0 0 2px rgba(255, 126, 0, 0.15);
 }
 
+/* ── プリセット選択 ── */
+.control-select {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-h);
+  font-family: var(--sans);
+  font-size: 13px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: #ff7e00;
+  box-shadow: 0 0 0 2px rgba(255, 126, 0, 0.15);
+}
+
 /* ── J パラメータ表示 ── */
 .j-display-row {
   display: flex;
